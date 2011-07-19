@@ -183,12 +183,16 @@ body {
     border: 1px solid #333;
     text-align: center;
     margin-bottom: 10px;
-    background: #FFF333;
+    background: #eee;
     cursor: pointer;
 }
 
 #left-side #playground ul#notes li.guessed-note {
-    background: #ff0000;
+    background: #fff333;
+}
+
+#left-side #playground ul#notes li.correct-note {
+    background: #728A05;
 }
 
 #left-side #playground #buttons {

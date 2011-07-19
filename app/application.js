@@ -120,6 +120,7 @@ jQuery(function($) {
                 return;                
             }
             this.updateButtons();
+            this.notePicker.updateStatuses(chord);
         },
 
         /**
@@ -234,8 +235,6 @@ jQuery(function($) {
 
         proxied: ["toggleGuess", "onGuess"],
 
-        currentChord: null,
-
         NOTE_STATUS: {
             guessed: "guessed-note",
             correct: "correct-note",
@@ -268,9 +267,9 @@ jQuery(function($) {
          * Will clear all the guessed notes
          */
         clear: function () {
-            var class_attr = this.NOTE_STATUS.guessed;
+            var statuses = this.NOTE_STATUS;
             this.el.children().each(function () {
-                $(this).removeClass(class_attr);
+                $(this).removeClass(statuses.guessed + ' ' + statuses.correct + ' ' + statuses.incorrect);
             });
         },
 
@@ -278,13 +277,23 @@ jQuery(function($) {
          * When a chord is changed, the buttons will be 
          * marked/unmarked accordingly
          */
-        change: function (chord) {            
+        change: function (chord) {
             this.clear();
-            this.currentChord = chord;
+            this.updateStatuses(chord);
+        },
+
+        /**
+         * Update the statuses of the notes everytime a chord is changed
+         * or a guess is made
+         * statuses = ('guesses', 'correct', 'incorrect')
+         * @param Chord_Model chord
+         */
+        updateStatuses: function (chord) {
             if (chord.guess) {
-                for (var i = 0; i < chord.guess.length; i++) {
-                    this.mark(chord.guess[i], "guessed");
-                }
+                this.mark(chord.guess, 'guessed');
+            }
+            if (chord.correct) {
+                this.mark(chord.correct, 'correct');
             }
         },
 
@@ -304,9 +313,17 @@ jQuery(function($) {
          * @param name - string - name of the note to be marked
          * @param status - string - status it is to be marked as 
          */
-        mark: function (name, status) {
-            var class_attr = this.NOTE_STATUS[status];
-            $("#"+Notes.slugify(name)).addClass(class_attr);
+        mark: function (notes, status) {
+            if (typeof notes === 'string') {
+                var name = notes,
+                class_attr = this.NOTE_STATUS[status];
+                $("#"+Notes.slugify(name)).addClass(class_attr);
+            } else if (typeof notes === 'object') {
+                for (var i = 0; i < notes.length; i++) {
+                    this.mark(notes[i], status);
+                }
+            }
+
         },
 
         getMarked: function (status) {
@@ -316,7 +333,8 @@ jQuery(function($) {
                 marked.push(Notes.unslugify($(this).attr('id')));
             });
             return marked;
-        }        
+        },
+
     });
 
     window.Scoreboard = Spine.Controller.create({
