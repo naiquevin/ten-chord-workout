@@ -124,32 +124,30 @@ jQuery(function($) {
         },
 
         /**
+         * Method to update the states of the previous, next and the roll
+         * buttons for this chord
          * if its the first chord, hide the prev button
          * if its the last (10th) chord, hide the next button
+         * if its a strike show the next button and hide roll
          */
         updateButtons: function () {
-            var current_pk = this.chord.current.pk,
-            current_num_attempt = this.chord.current.num_attempt,
-            buttons = [
-                { el: this.prevBtn, status: true },
-                { el: this.nextBtn, status: true },
-                { el: this.confirmBtn, status: true }                  
-            ];
-            this.controlButtons.show();
-            // if first chord hide prev
-            if (current_pk === 0) {
-                buttons[0]['status'] = false;
-            }
-            // if last chord or current chord not answered yet, hide next
-            if (current_pk === 9 || current_num_attempt < 2) {
-                buttons[1]['status'] = false;
-            }
-            for (var i in buttons) {
-                if (!buttons[i]['status']) {
-                    var el = buttons[i]['el'];
-                    el.hide();
+            // hide all buttons first
+            this.controlButtons.hide();
+            this.confirmBtn.show();
+            var chord = this.chord.current,
+            strike_occured = ScoreModel.isStrike(chord.score_id);
+            // if not last AND if all attempts consumed OR strike occurs show "next" button
+            if (!ChordModel.isLast(chord) && (chord.num_attempt === 2 || strike_occured)) {
+                this.nextBtn.show();
+                // in casE strike occurs, hide the roll button to prevent the user from making any more guesses
+                if (strike_occured) {
+                    this.confirmBtn.hide();
                 }
-            }            
+            }
+            // if not first, show "prev" button
+            if (!ChordModel.isFirst(chord)) {
+                this.prevBtn.show();
+            }
         }
     });
 
@@ -219,7 +217,6 @@ jQuery(function($) {
                 score: Math.round(correct.length/notes.length * 10)
             };
         }
-
     });
 
     window.NotePicker = Spine.Controller.create({
@@ -260,7 +257,10 @@ jQuery(function($) {
          * Will mark and unmark the clicked note as guessed note
          */
         toggleGuess: function (event) {
-            $(event.target).toggleClass(this.NOTE_STATUS.guessed);
+            var $trgt = $(event.target);
+            if (!$trgt.hasClass(this.NOTE_STATUS.correct)) {
+                $(event.target).toggleClass(this.NOTE_STATUS.guessed);
+            }
         },
 
         /**
@@ -379,9 +379,7 @@ jQuery(function($) {
         update: function (score) {
             var scores = score.scores,
             attempt = scores.length,
-            // total possible attempts
-            total_attempts = score.chord_pk === 9 ? 3 : 2,
-            box_index = this._getRollScoreBox(attempt, total_attempts),
+            box_index = this._getRollScoreBox(attempt, score.chord_pk),
             box = this._getScoreCard(score.chord_pk).children().filter('ul.chances').children().eq(box_index),
             // score for this roll only
             roll_score = ScoreModel.getRollScore(score);
@@ -390,13 +388,14 @@ jQuery(function($) {
 
         /**
          * Get the correct li index to show the score for this roll
-         * This is computed using the attempt number and total possible
+         * This is computed using the attempt number and total attempts
          * Method can be avoided if float: left used instead of float: right
          * @param int attempt the number of attempt [1,2,3]
-         * @param int total_attempts total possible attempts (3 in case of last frame)
+         * @param int chord_pk primary key of the current chord
          * @return int index of the li element 
          */
-        _getRollScoreBox: function (attempt, total_attempts) {
+        _getRollScoreBox: function (attempt, chord_pk) {
+            var total_attempts = chord_pk === 9 ? 3 : 2;
             return Math.abs(attempt - total_attempts);
         },
         

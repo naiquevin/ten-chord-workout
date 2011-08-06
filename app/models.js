@@ -64,6 +64,24 @@ ChordModel.extend({
         } else {
             return false;
         }
+    },
+
+    /**
+     * Method to check whether the chord is the first of the 10 chords
+     * @param ChordModel chord
+     * @return boolean 
+     */
+    isFirst: function (chord) {
+        return (chord.pk === 0)
+    },
+
+    /**
+     * Method to check whether the chord is the first of the 10 chords
+     * @param ChordModel chord
+     * @return boolean 
+     */
+    isLast: function (chord) {
+        return (chord.pk === 9)
     }
 });
 
@@ -78,10 +96,11 @@ ScoreModel.extend({
      * @return int score for this roll
      */
     getRollScore: function (score) {
-        var scores = score.scores;
-        if (scores.length === 2) {
+        var scores = ScoreModel.getScoresArray(score),
+        attempt = ScoreModel.getAttemptsConsumed(score);
+        if (attempt === 2) {
             return scores[1] - scores[0];
-        } else if (scores.length === 1) {
+        } else if (attempt === 1) {
             return scores[0];
         }
     },
@@ -92,6 +111,56 @@ ScoreModel.extend({
      * @return int total score for the frame so far
      */
     getTotalScore: function (score) {
-        return score.scores[score.scores.length - 1];
+        var scores = ScoreModel.getScoresArray(score);
+        return scores[scores.length - 1];
+    },
+
+    /**
+     * Method to determine if a strike has occured
+     * @param mixed (string|object) score
+     * @return boolean
+     */
+    isStrike: function (score) {
+        if (typeof score === 'string') {
+            score = ScoreModel.find(score);
+        }
+        var attempt = ScoreModel.getAttemptsConsumed(score),
+        score_so_far = ScoreModel.getTotalScore(score);
+        return (attempt === 1 && score_so_far === 10);
+    },
+
+    /**
+     * Method to determine if a spare has occured
+     * @param mixed (string|object) score
+     * @return boolean
+     */
+    isSpare: function (score) {
+        if (typeof score === 'string') {
+            score = ScoreModel.find(score);
+        }        
+        var attempt = ScoreModel.getAttemptsConsumed(score),
+        score_so_far = ScoreModel.getTotalScore(score);
+        return (attempt === 2 && score_so_far === 10);
+    },
+
+    /**
+     * Method to get the scores list from the score object
+     * @param ScoreModel score 
+     * @return array of scores in each roll
+     */
+    getScoresArray: function (score) {
+        return (typeof score === 'object' ? score.scores : []);
+    },
+
+    /**
+     * Method to get the number of attempt from the score object
+     * @param ScoreModel score
+     * @return int the number of attempt from the length of the array
+     */
+    getAttemptsConsumed: function (score) {
+        if (typeof score === 'undefined') {
+            return 0;
+        }
+        return score.scores.length;
     }
 });
