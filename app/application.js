@@ -32,7 +32,7 @@ jQuery(function($) {
             ChordModel.bind("update", this.confirmed);            
             this.chord = OneChord.init();             
             // show the first chord right away
-            this.newChord();
+            ChordModel.factory();
         },
 
         /**
@@ -45,7 +45,7 @@ jQuery(function($) {
                 this.render(next);
                 return;
             } else {
-                this.newChord();
+                ChordModel.factory();
             }            
         },
 
@@ -61,17 +61,6 @@ jQuery(function($) {
             } else {
                 throw new Error('Previous chord not found?!');
             }            
-        },
-
-        /**
-         * create a new chord by using the ChordModel's create method
-         */
-        newChord : function () {
-            var ch = ChordModel.getRandom(),
-            last = ChordModel.last();
-            ch.pk = last ? last.pk + 1: 0;
-            ch.num_attempt = 0;
-            ChordModel.create(ch);
         },
 
         /**
@@ -137,7 +126,7 @@ jQuery(function($) {
             var chord = this.chord.current,
             strike_occured = ScoreModel.isStrike(chord.score_id);
             // if not last AND if all attempts consumed OR strike occurs show "next" button
-            if (!ChordModel.isLast(chord) && (chord.num_attempt === 2 || strike_occured)) {
+            if (!chord.is_last() && (!chord.can_guess() || strike_occured)) {
                 this.nextBtn.show();
                 // in casE strike occurs, hide the roll button to prevent the user from making any more guesses
                 if (strike_occured) {
@@ -145,7 +134,7 @@ jQuery(function($) {
                 }
             }
             // if not first, show "prev" button
-            if (!ChordModel.isFirst(chord)) {
+            if (!chord.is_first()) {
                 this.prevBtn.show();
             }
         }
@@ -289,6 +278,7 @@ jQuery(function($) {
          * @param Chord_Model chord
          */
         updateStatuses: function (chord) {
+            // console.log(chord);
             if (chord.guess) {
                 this.mark(chord.guess, 'guessed');
             }

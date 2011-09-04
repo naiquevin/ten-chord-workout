@@ -27,6 +27,18 @@ var ChordModel = Spine.Model.setup("ChordModel",
 ChordModel.extend({
 
     /**
+     * Method to create a new object
+     */
+    factory: function () {
+        var ch = ChordModel.getRandom(),
+        last = ChordModel.last();
+        ch.pk = last ? last.pk + 1: 0;
+        ch.num_attempt = 0;
+        ChordModel.create(ch);
+        return ch;
+    },
+
+    /**
      * Method to create a random chord using the guitarjs lib
      */
     getRandom: function() {
@@ -64,25 +76,28 @@ ChordModel.extend({
         } else {
             return false;
         }
-    },
-
-    /**
-     * Method to check whether the chord is the first of the 10 chords
-     * @param ChordModel chord
-     * @return boolean 
-     */
-    isFirst: function (chord) {
-        return (chord.pk === 0)
-    },
-
-    /**
-     * Method to check whether the chord is the first of the 10 chords
-     * @param ChordModel chord
-     * @return boolean 
-     */
-    isLast: function (chord) {
-        return (chord.pk === 9)
     }
+});
+
+// object properties
+ChordModel.include({
+
+    is_first: function () {
+        return (this.pk === 0);
+    },
+
+    is_last: function () {
+        return (this.pk === 9);
+    },
+
+    /**
+     * Method to check if any more guesses can be made for this chord
+     */
+    can_guess: function () {
+        var max = (this.pk === 9) ? 3 : 2;
+        return this.num_attempt < max;
+    }
+
 });
 
 var ScoreModel = Spine.Model.setup("ScoreModel", ["chord_pk", "scores", "total"]);
