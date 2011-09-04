@@ -183,7 +183,7 @@ jQuery(function($) {
             score.chord_pk = this.current.pk;            
             score.save();
             this.current.score_id = score.id;
-            this.current.save();    
+            this.current.save();
         },
 
         /**
@@ -360,19 +360,26 @@ jQuery(function($) {
         },
 
         scoreChanged: function (event, score) {
-            this._getScoreCard(score.chord_pk).children().filter('div').text(score.total);
+            this._getScoreCard(score.chord_pk).children().filter('div').text(score.total);            
         },
 
         /**
+         * Method to update the ui with the score
          * @param ScoreModel score associated with the chord
          */
         update: function (score) {
             var scores = score.scores,
             attempt = scores.length,
             box_index = this._getRollScoreBox(attempt, score.chord_pk),
-            box = this._getScoreCard(score.chord_pk).children().filter('ul.chances').children().eq(box_index),
+            box = this._getScoreCard(score.chord_pk).children().filter('ul.chances').children().eq(box_index);
             // score for this roll only
-            roll_score = ScoreModel.getRollScore(score);
+            if (ScoreModel.isStrike(score)) {
+                var roll_score = 'X';
+            } else if (ScoreModel.isSpare(score)) {
+                var roll_score = '/';
+            } else {
+                var roll_score = ScoreModel.getRollScore(score);
+            }            
             box.text(roll_score);
         },
 
