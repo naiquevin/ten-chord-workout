@@ -124,7 +124,7 @@ jQuery(function($) {
             this.controlButtons.hide();
             this.confirmBtn.show();
             var chord = this.chord.current,
-            strike_occured = ScoreModel.isStrike(chord.score_id);
+            strike_occured = chord.get_score().is_strike();
             // if not last AND if all attempts consumed OR strike occurs show "next" button
             if (!chord.is_last() && (!chord.can_guess() || strike_occured)) {
                 this.nextBtn.show();
@@ -169,34 +169,7 @@ jQuery(function($) {
         },
 
         saveGuess: function (guess) {
-            this.current.num_attempt++;
-            this.current.guess = guess;
-            var result = this.evaluateGuess(guess);
-            this.current.correct = result.correct;
-            this.current.set_score(result.score);            
-            this.current.save();
-            ChordModel.award_bonus(this.current);
-        },
-
-        /**
-         * Evaluate the guess and find out the correctly guessed notes
-         * and calculate the points
-         * @return object {correct: [], score: int}
-         */
-        evaluateGuess: function (guess) {
-            var notes = this.current.notes,
-            correct = [];
-            // console.log(notes, guess);
-            for (var i = 0; i < guess.length; i++) {
-                // safe to use jQuery.inArray here
-                if ($.inArray(guess[i], notes) !== -1) {
-                    correct.push(guess[i]);
-                }
-            }
-            return {
-                correct: correct,
-                score: Math.round(correct.length/notes.length * 10)
-            };
+            this.current.evaluate(guess);
         }
     });
 
@@ -364,12 +337,12 @@ jQuery(function($) {
             box_index = Scoreboard.getRollScoreBox(attempt, score.chord_pk),
             box = this.getScoreCard(score.chord_pk).children().filter('ul.chances').children().eq(box_index);
             // score for this roll only
-            if (ScoreModel.isStrike(score)) {
+            if (score.is_strike()) {
                 var roll_score = 'X';
-            } else if (ScoreModel.isSpare(score)) {
+            } else if (score.is_spare()) {
                 var roll_score = '/';
             } else {
-                var roll_score = ScoreModel.getRollScore(score);
+                var roll_score = score.roll_score();
             }            
             box.text(roll_score);
         },

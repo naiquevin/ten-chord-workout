@@ -131,22 +131,39 @@ ChordModel.include({
         return this.num_attempt < max;
     },
 
+    /**
+     * Method to evaluate the guess and save the object
+     * @param guess
+     */
+    evaluate: function (guess) {
+        var correct = [];
+        for (var i = 0; i < guess.length; i++) {
+            if ($.inArray(guess[i], this.notes) !== -1) {
+                correct.push(guess[i]);
+            }
+        }
+        var score = Math.round(correct.length/this.notes.length * 10);
+        this.guess = guess;
+        this.num_attempt++;
+        this.correct = correct;
+        this.get_score().update_score(score);
+        this.save();
+        ChordModel.award_bonus(this);
+    },
+    
+    /**
+     * Method to get the score object associated with the chord
+     * if no score object associated yet, create and save it
+     */
     get_score: function () {
         if (this.score_id) {
             var score = ScoreModel.find(this.score_id);
         } else {
-            var score = ScoreModel.create({ scores: []});
+            var score = ScoreModel.create({ scores: [], chord_pk: this.pk });
+            score.save();
+            this.score_id = score.id;
         }
         return score;
-    },
-
-    set_score: function (score) {
-        score_obj = this.get_score();
-        score_obj.scores.push(score);
-        score_obj.total = ScoreModel.getTotalScore(score_obj); // class2inst
-        score_obj.chord_pk = this.pk;            
-        score_obj.save();
-        this.score_id = score_obj.id;
     }
 });
 
@@ -187,7 +204,11 @@ ScoreModel.include({
     },
 
     attempt_count: function () {
-        return this.chord().num_attempt;
+        // if initially no chord is set
+        if (this.chord()) {
+            return this.chord().num_attempt;            
+        }
+        return 0;
     },
 
     /**
@@ -214,94 +235,21 @@ ScoreModel.include({
         return scores[scores.length - 1];
     },
 
+    update_score: function (score) {
+        this.scores.push(score);
+        this.total = this.frame_score(); 
+        this.save();
+    },
+
     /**
      * Method to add bonus points to the frame score
      */
     add_bonus: function (score) {
         this.bonus = !this.bonus ? 0 : this.bonus;
-        console.log(this.bonus, score);
+        // console.log(this.bonus, score);
         var bonus = this.bonus + score;
         this.total = this.frame_score() + bonus;
         this.bonus = bonus;
         this.save();
-    }
-
-});
-
-// Class Properties
-ScoreModel.extend({    
-
-    /**
-     * Method to compute the score after each roll
-     * @param ScoreModel object so far for the current frame
-     * @return int score for this roll
-     */
-    getRollScore: function (score) {
-        var scores = ScoreModel.getScoresArray(score),
-        attempt = ScoreModel.getAttemptsConsumed(score);
-        if (attempt === 2) {
-            return scores[1] - scores[0];
-        } else if (attempt === 1) {
-            return scores[0];
-        }
-    },
-
-    /**
-     * Method to compute the total score for each frame so far
-     * @param ScoreModel Object score for the frame
-     * @return int total score for the frame so far
-     */
-    getTotalScore: function (score) {
-        var scores = ScoreModel.getScoresArray(score);
-        return scores[scores.length - 1];
-    },
-
-    /**
-     * Method to determine if a strike has occured
-     * @param mixed (string|object) score
-     * @return boolean
-     */
-    isStrike: function (score) {
-        if (typeof score === 'string') {
-            score = ScoreModel.find(score);
-        }
-        var attempt = ScoreModel.getAttemptsConsumed(score),
-        score_so_far = ScoreModel.getTotalScore(score);
-        return (attempt === 1 && score_so_far === 10);
-    },
-
-    /**
-     * Method to determine if a spare has occured
-     * @param mixed (string|object) score
-     * @return boolean
-     */
-    isSpare: function (score) {
-        if (typeof score === 'string') {
-            score = ScoreModel.find(score);
-        }        
-        var attempt = ScoreModel.getAttemptsConsumed(score),
-        score_so_far = ScoreModel.getTotalScore(score);
-        return (attempt === 2 && score_so_far === 10);
-    },
-
-    /**
-     * Method to get the scores list from the score object
-     * @param ScoreModel score 
-     * @return array of scores in each roll
-     */
-    getScoresArray: function (score) {
-        return (typeof score === 'object' ? score.scores : []);
-    },    
-
-    /**
-     * Method to get the number of attempt from the score object
-     * @param ScoreModel score
-     * @return int the number of attempt from the length of the array
-     */
-    getAttemptsConsumed: function (score) {
-        if (typeof score === 'undefined') {
-            return 0;
-        }
-        return score.scores.length;
     }
 });
