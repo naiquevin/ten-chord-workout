@@ -40,7 +40,7 @@ jQuery(function($) {
          * if next present shown, else create new
          */
         next: function () {
-            var next = ChordModel.getNext(this.chord.current)
+            var next = this.chord.current.next();
             if (next) {
                 this.render(next);
                 return;
@@ -54,7 +54,7 @@ jQuery(function($) {
          * not present case is impossible. So defensively throw an Error
          */
         prev: function () {
-            var prev = ChordModel.getPrev(this.chord.current);
+            var prev = this.chord.current.prev();
             if (prev) {
                 this.render(prev);
                 return;
@@ -173,17 +173,9 @@ jQuery(function($) {
             this.current.guess = guess;
             var result = this.evaluateGuess(guess);
             this.current.correct = result.correct;
-            if (this.current.score_id) {
-                var score = ScoreModel.find(this.current.score_id);
-                score.scores.push(result.score);
-            } else {
-                var score = ScoreModel.create({ scores: [result.score]});
-            }
-            score.total = ScoreModel.getTotalScore(score);
-            score.chord_pk = this.current.pk;            
-            score.save();
-            this.current.score_id = score.id;
+            this.current.set_score(result.score);            
             this.current.save();
+            ChordModel.award_bonus(this.current);
         },
 
         /**
@@ -313,7 +305,6 @@ jQuery(function($) {
                     this.mark(notes[i], status);
                 }
             }
-
         },
 
         getMarked: function (status) {
@@ -360,7 +351,7 @@ jQuery(function($) {
         },
 
         scoreChanged: function (event, score) {
-            this._getScoreCard(score.chord_pk).children().filter('div').text(score.total);            
+            this.getScoreCard(score.chord_pk).children().filter('div').text(score.total);            
         },
 
         /**
@@ -370,8 +361,8 @@ jQuery(function($) {
         update: function (score) {
             var scores = score.scores,
             attempt = scores.length,
-            box_index = this._getRollScoreBox(attempt, score.chord_pk),
-            box = this._getScoreCard(score.chord_pk).children().filter('ul.chances').children().eq(box_index);
+            box_index = Scoreboard.getRollScoreBox(attempt, score.chord_pk),
+            box = this.getScoreCard(score.chord_pk).children().filter('ul.chances').children().eq(box_index);
             // score for this roll only
             if (ScoreModel.isStrike(score)) {
                 var roll_score = 'X';
@@ -384,6 +375,18 @@ jQuery(function($) {
         },
 
         /**
+         * Get the score card (block) for the current frame
+         * @param int chord_pk primary key of the current chord
+         * @return jQuery Object 
+         */
+        getScoreCard: function (chord_pk) {
+            return this.el.children().eq(chord_pk);
+        }
+    });
+
+    window.Scoreboard.extend({
+        
+        /**
          * Get the correct li index to show the score for this roll
          * This is computed using the attempt number and total attempts
          * Method can be avoided if float: left used instead of float: right
@@ -391,20 +394,10 @@ jQuery(function($) {
          * @param int chord_pk primary key of the current chord
          * @return int index of the li element 
          */
-        _getRollScoreBox: function (attempt, chord_pk) {
+        getRollScoreBox: function (attempt, chord_pk) {
             var total_attempts = chord_pk === 9 ? 3 : 2;
             return Math.abs(attempt - total_attempts);
         },
-        
-        /**
-         * Get the score card (block) for the current frame
-         * @param int chord_pk primary key of the current chord
-         * @return jQuery Object 
-         */
-        _getScoreCard: function (chord_pk) {
-            return this.el.children().eq(chord_pk);
-        }
-            
     });
 
     window.App = TenChordApp.init();
