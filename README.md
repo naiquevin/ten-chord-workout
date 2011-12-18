@@ -14,14 +14,17 @@ and you can score "strikes" and "spares" just as in the original game.
 At the same time it helps in practicing music theory as well.
 
 ## Dependencies
-1. [GuitarJs](https://github.com/naiquevin/GuitarJs)
+1. [JQuery](http://jquery.com) 
+   The indispensable!
+   
+2. [GuitarJs](https://github.com/naiquevin/GuitarJs)
    This is a small library I had written as a fun exercise a while back.
    
-2. [Spine.js](http://spinejs.com/)
+3. [Spine.js](http://spinejs.com/)
    Please note that the version of spine.js currently used in this project 
    is pretty old as I had started with this app when spine was just out.
    I am aware that spine has undegone a lot of improvements and I do plan
-   to make this project new spine compatible when I get time.
+   to make this project new-spine-compatible as and when I get time.
    
 
 
