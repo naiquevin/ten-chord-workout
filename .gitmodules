@@ -1,0 +1,3 @@
+[submodule "lib/GuitarJs"]
+	path = lib/GuitarJs
+	url = git@github.com:naiquevin/GuitarJs.git
