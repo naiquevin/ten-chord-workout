@@ -29,23 +29,27 @@ ChordModel.extend({
     /**
      * Method to create a new object
      */
-    factory: function () {
-        var ch = ChordModel.getRandom(),
+    factory: function (specific) {
+        if (specific) {
+            var ch = Chord.build(specific);
+        } else {
+            var ch = ChordModel.getRandom();
+        }
         last = ChordModel.last();
         ch.pk = last ? last.pk + 1: 0;
         ch.num_attempt = 0;
-        ChordModel.create(ch);
-        return ch;
+        ch.guess = null;
+        ch.correct = null;
+        return ChordModel.create(ch);
     },
 
     /**
      * Method to create a random chord using the guitarjs lib
      */
     getRandom: function() {
-        var note = Notes.names[Math.floor(Math.random()*Notes.names.length)],
-        type = Chord.TYPES[Math.floor(Math.random()*Chord.TYPES.length)],
-        // chord_name = note+" "+type.code;
-        chord_name = "A Maj";
+        var note = Notes.names[Math.floor(Math.random()*Notes.names.length)];
+        var type = Chord.TYPES[Math.floor(Math.random()*Chord.TYPES.length)];
+        var chord_name = note+" "+type.code;
         return Chord.build(chord_name);        
     },
 
@@ -100,7 +104,7 @@ ChordModel.include({
         var prev = ChordModel.select(function (chord) {
             if (chord.pk === that.pk-1) return true;
         });
-        if (prev) {
+        if (prev.length) {
             return prev[0];
         } else {
             return false;
@@ -116,7 +120,7 @@ ChordModel.include({
         var next = ChordModel.select(function (chord) {
             if (chord.pk === that.pk+1) return true;
         });
-        if (next) {
+        if (next.length) {
             return next[0];
         } else {
             return false;
