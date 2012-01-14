@@ -87,5 +87,42 @@ $(document).ready(function () {
         same(chord.correct, ['A'], 'A was guessed correctly');        
         ok(!chord.can_guess(), 'Both guesses consumed. No more guesses allowed');
     });
-    
+
+    test("Testing ScoreModel instance methods", function () {
+        var score = ScoreModel.create({ scores: [], chord_pk: 0, total: 0, bonus: 0 });
+        score.save();
+        equal(score.scores.length, 0);
+        equal(score.total, 0);
+        equal(score.bonus, 0);
+        score.update_score(3);
+        same(score.scores, [3]);
+        equal(score.total, 3);
+        equal(score.frame_score(), 3);
+        score.update_score(7);
+        same(score.scores, [3, 7]);
+        equal(score.total, 7);
+        equal(score.roll_score(), 4);
+        equal(score.frame_score(), 7);       
+    });
+
+    test("Testing the score object associated with the chord", function () {
+        // create a known chord
+        var chord = ChordModel.factory('A Maj');
+        var score = chord.get_score();
+        equal(score.scores.length, 0, 'Without any guesses made, the score array is empty');
+        equal(score.total, 0, 'And the total score is zero to start with');
+        equal(score.chord().pk, chord.pk, 'chord relationship is set correctly');
+        var guess = ['A', 'C#'];
+        chord.evaluate(guess);
+        var score = chord.get_score();
+        equal(score.scores.length, 1, '1 guess made so far');
+        equal(score.frame_score(), 7, 'framescore so far = 7');
+        equal(score.total, 7, 'and so is the total score (7)');
+        var guess = ['A', 'C#', 'G'];
+        chord.evaluate(guess);
+        var score = chord.get_score();
+        equal(score.scores.length, 2, '1 guess made so far');
+        equal(score.frame_score(), 7, 'framescore still = 7');
+        equal(score.total, 7, 'and so is the total score (7)');
+    });    
 });

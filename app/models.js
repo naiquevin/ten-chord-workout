@@ -163,7 +163,7 @@ ChordModel.include({
         if (this.score_id) {
             var score = ScoreModel.find(this.score_id);
         } else {
-            var score = ScoreModel.create({ scores: [], chord_pk: this.pk });
+            var score = ScoreModel.create({ scores: [], chord_pk: this.pk, total: 0, bonus: 0 });
             score.save();
             this.score_id = score.id;
         }
@@ -208,15 +208,12 @@ ScoreModel.include({
     },
 
     attempt_count: function () {
-        // if initially no chord is set
-        if (this.chord()) {
-            return this.chord().num_attempt;            
-        }
-        return 0;
+        return this.scores.length;
     },
 
     /**
      * Method to compute the score after each roll
+     * ie. it will return the points scored in the last roll only
      * @return int score for this roll
      */
     roll_score: function () {
@@ -235,8 +232,7 @@ ScoreModel.include({
      * @return int total score for the frame so far
      */
     frame_score: function () {
-        var scores = this.scores_array();
-        return scores[scores.length - 1];
+        return this.scores[this.scores.length - 1]
     },
 
     update_score: function (score) {
