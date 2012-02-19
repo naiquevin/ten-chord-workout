@@ -123,15 +123,10 @@ jQuery(function($) {
             // hide all buttons first
             this.controlButtons.hide();
             this.confirmBtn.show();
-            var chord = this.chord.current,
-            strike_occured = chord.get_score().is_strike();
-            // if not last AND if all attempts consumed OR strike occurs show "next" button
-            if (!chord.is_last() && (!chord.can_guess() || strike_occured)) {
+            var chord = this.chord.current;
+            // if not last AND if all attempts consumed
+            if (!chord.is_last() && !chord.can_guess()) {
                 this.nextBtn.show();
-                // in casE strike occurs, hide the roll button to prevent the user from making any more guesses
-                if (strike_occured) {
-                    this.confirmBtn.hide();
-                }
             }
             // if not first, show "prev" button
             if (!chord.is_first()) {

@@ -19,6 +19,7 @@ $(document).ready(function () {
         equal(chord.guess, null, 'the guess property is null');
         equal(chord.correct, null, 'so is the correct property');
         equal(chord.num_attempt, 0, 'no attempts are made');
+        equal(chord.score, undefined, 'score is null');
     });
 
     module("Testing ChordModel", {
@@ -41,7 +42,7 @@ $(document).ready(function () {
     });
 
     test('ChordModel Primary Key', function () {
-        equals(this.chord0.pk, 0, 'The models collection is zero indexed')
+        equals(this.chord0.pk, 0, 'The models collection is zero indexed');
         equals(this.chord1.pk, this.chord0.pk + 1, 'Primary key increases by 1');        
     });
 
@@ -121,8 +122,81 @@ $(document).ready(function () {
         var guess = ['A', 'C#', 'G'];
         chord.evaluate(guess);
         var score = chord.get_score();
-        equal(score.scores.length, 2, '1 guess made so far');
+        equal(score.scores.length, 2, '2 guess made so far');
         equal(score.frame_score(), 7, 'framescore still = 7');
         equal(score.total, 7, 'and so is the total score (7)');
-    });    
+    });
+
+    test("Testing the case of strike", function () {
+        // test 1 consecutive strike
+        // create a known chord and guess correctly
+        var chord0 = ChordModel.factory('A Maj');
+        chord0.evaluate(['A', 'C#', 'E'])
+
+        var score0 = chord0.get_score();
+        ok(score0.is_strike(), "it's a strike!")
+        ok(!score0.is_spare(), "it's not a spare!")
+        equal(score0.total, 10, "test that it's a perfect 10");
+        
+        ok(!chord0.can_guess(), "cannot be guessed on chord0 anymore");
+
+        var chord1 = ChordModel.factory('A Maj');
+        chord1.evaluate(['A', 'C#']); // chord1 score becomes 7
+        equal(score0.total, 17, "chord 0 score increased to 17");
+        chord1.evaluate(['A', 'C#']); // chord1 score remains 7
+
+        chord2 = ChordModel.factory('A Maj');
+        chord2.evaluate(['A']); // chord2 score - 3 
+        chord2.evaluate(['A', 'C#']);
+        equal(score0.total, 17, "chord 0 score stays on 17");        
+
+        // test 2 consecutive strikes - (chord3, chord4 strikes. test that
+        // chord4 and chord5 score is added to  chord3,
+        // chord5 score is added to chord4
+
+        var chord3 = ChordModel.factory('A Maj');
+        chord3.evaluate(['A', 'C#', 'E']);
+        var score3 = chord3.get_score();
+        equal(score3.total, 10, "Chord 3 score is perfect 10");
+        var chord4 = ChordModel.factory('A Maj');
+        chord4.evaluate(['A', 'C#', 'E']);
+        var score4 = chord4.get_score();
+        equal(score4.total, 10, "Chord 4 is also a perfect 10");
+        var chord5 = ChordModel.factory('A Maj');
+        chord5.evaluate(['A', 'E', 'C#']);
+        var score5 = chord5.get_score();
+
+        equal(score3.total, (10 + 10 + score5.total), "base score of chord4 and chord5 score is added to chord3");
+        equal(score4.total, (10 + score5.total), "base score of chord5 is added to chord4");
+
+        var chord6 = ChordModel.factory('A Maj');
+        chord6.evaluate(['A']);
+        
+        equal(score3.total, (10 + 10 + 10));
+
+    });
+
+    test("Testing the case of spare", function () {
+        var chord0 = ChordModel.factory('A Maj');
+        chord0.evaluate(['A', 'C#'])
+        chord0.evaluate(['A', 'C#', 'E'])
+
+        var score0 = chord0.get_score();
+        ok(score0.is_spare(), "it's a spare!")
+        ok(!score0.is_strike(), "it's not a strike!")
+        equal(score0.total, 10, "test that it's a perfect 10");
+
+        var chord1 = ChordModel.factory('A Maj');
+        chord1.evaluate(['A', 'C#']);
+
+        var score1 = chord1.get_score();
+        equal(score0.total, 10 + score1.total, "test that bonus of score1 is awarded");
+
+        var score0_total = score0.total;
+        
+        chord1.evaluate(['A', 'E', 'C#']);
+        equal(score0.total, score0_total, "score0 remains is not affected by the 2nd roll");
+        
+    });
+    
 });

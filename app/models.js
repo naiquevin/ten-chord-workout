@@ -50,6 +50,7 @@ ChordModel.extend({
         var note = Notes.names[Math.floor(Math.random()*Notes.names.length)];
         var type = Chord.TYPES[Math.floor(Math.random()*Chord.TYPES.length)];
         var chord_name = note+" "+type.code;
+        // var chord_name = 'A Maj'; // for testing
         return Chord.build(chord_name);        
     },
 
@@ -57,9 +58,13 @@ ChordModel.extend({
         if (curr.is_first()) {
             return;
         }
-        // strike bonus
+        // strike bonus after both the first as well as second rolls
         ChordModel.award_strike_bonus(curr);
-        // ChordModel.award_spare_bonus(curr);        
+
+        // spare bonus after the first roll only
+        if (curr.num_attempt === 1) {
+            ChordModel.award_spare_bonus(curr);        
+        }
     },
 
     award_strike_bonus: function (curr) {
@@ -78,8 +83,8 @@ ChordModel.extend({
     award_spare_bonus: function (curr) {
         var prev = curr.prev();
         var bonus = curr.get_score().roll_score();
-        if (prev.is_spare()) {
-            
+        if (prev.get_score().is_spare()) {
+            prev.get_score().add_bonus(bonus);
         }
     }
 });
@@ -132,7 +137,13 @@ ChordModel.include({
      */
     can_guess: function () {
         var max = (this.pk === 9) ? 3 : 2;
-        return this.num_attempt < max;
+        if (this.num_attempt < max) {
+            if (this.score_id) {
+                return !this.get_score().is_strike();
+            } 
+            return true;
+        }
+        return false;
     },
 
     /**
