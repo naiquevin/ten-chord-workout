@@ -198,5 +198,88 @@ $(document).ready(function () {
         equal(score0.total, score0_total, "score0 remains is not affected by the 2nd roll");
         
     });
-    
+
+    module("Testing the tenth frame", {
+        // create 10 chord objects before each test
+        setup: function () {
+            var i = 0;
+            while (i < 9) {
+                c = ChordModel.factory('A Maj');
+                c.evaluate(['A', 'E', 'C#']);
+                this['chord'+(i++)] = c;
+            }
+        },
+        // and destroy the collection after running it
+        teardown: function () {
+            ChordModel.destroyAll();
+        }
+    });
+
+    test("Testing the case of strike in tenth frame", function () {
+        var chord9 = this.chord9 = ChordModel.factory('A Maj');
+        ok(chord9.is_last(), "In unattempted state chord 10 is last");
+        this.chord9.evaluate(['A', 'E', 'C#']);
+
+        ok(!chord9.is_last(), "But after scoring a strike, chord 10 is no longer the last chord");
+
+        var chord8 = this.chord8;
+
+        score9 = chord9.get_score();
+        equal(score9.total, 10, "the score is 10");
+
+        equal(chord8.get_score().total, 20, "the score is 10");
+
+        chord10 = ChordModel.factory('A Maj');
+        ok(chord10.is_last(), "In unattempted state chord 11 is last chord");
+        equal(chord10.max_guesses(), 2, "the bonus chord has max guesses 2");
+        chord10.evaluate(['A', 'E', 'C#']);
+        ok(!chord10.is_last(), "In the event of a strike chord 11 is no longer last chord");
+        score10 = chord10.get_score();
+
+        equal(chord8.get_score().total, 30, "chord 10 score increase by bonus 10");
+        equal(score9.total, 20, "chord 10 score increase by bonus 10");
+
+        chord11 = ChordModel.factory('A Maj');
+        ok(chord11.is_last(), "chord 12 is always last");
+        equal(chord11.max_guesses(), 1, "the 2nd bonus chord has 1 max guess only");
+        chord11.evaluate(['A', 'E', 'C#']);
+        score11 = chord11.get_score();
+        ok(chord11.is_last(), "chord 12 is always last");
+
+        equal(score9.total, 30, "chord 10 score increase by bonus 10");
+
+        // test that the total score is 300 which is maximum
+        var total_score = 0;
+        var i = 0;
+        while (i < 10) {
+            total_score += this['chord'+(i++)].get_score().total;
+        }
+        
+        equal(total_score, 300, "the total score is 300 (maximum)");
+
+    });    
+
+    test("Testing the case of spare in the tenth frame", function () {
+        var chord9 = this.chord9 = ChordModel.factory('A Maj');
+        ok(this.chord9.is_last(), "In unattempted state chord 10 is last");
+        this.chord9.evaluate(['A', 'E']);
+
+        equal(this.chord9.get_score().total, 7, "Score is 7 so far");
+        this.chord9.evaluate(['A', 'E', 'C#']);
+        
+        equal(this.chord9.get_score().total, 10, "Score is 10");
+        ok(this.chord9.get_score().is_spare(), "..and it's a spare");
+        ok(!this.chord9.is_last(), "In event of spare, chord 10 is no longer the last one");
+
+        this.chord10 = ChordModel.factory('A Maj');
+        ok(this.chord10.is_last(), "In unattempted state chord 11 is last");
+        equal(this.chord10.max_guesses(), 1, "the bonus chord has 1 max guess only");
+        this.chord10.evaluate(['A']);
+
+        equal(this.chord10.get_score().total, 3, "Score is 3 so far for the bonus guess");
+        equal(this.chord9.get_score().total, 13, "chord 10 score rises to 13");
+        ok(this.chord10.is_last(), "In event other than a strike, chord 11 remains last chord");
+    });
+
 });
+

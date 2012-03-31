@@ -98,19 +98,6 @@ jQuery(function($) {
         confirmed: function (chord) {
             var score = ScoreModel.find(chord.score_id);
             this.scoreboard.update(score);
-            switch (chord.num_attempt) {
-            case 2:
-                // no more guesses allowed for this chord
-                console.log("both guesses consumed");
-                break;
-            case 1:
-                // 1 more guess to go
-                console.log("1 more guess to go");
-                break;
-            case 0:
-            default:
-                return;                
-            }
             this.updateButtons();
             this.notePicker.updateStatuses(chord);
         },
@@ -321,8 +308,22 @@ jQuery(function($) {
             this.el.append(html);
         },
 
-        scoreChanged: function (event, score) {
-            this.getScoreCard(score.chord_pk).children().filter('div').text(score.total);            
+        /**
+         * Callback for score change.
+         * Since it's also invoked whenever a new chord is loaded (score is 0 then), 
+         * we need to handle the case of chord 10 in case of which, the bonus chords
+         * 11/12 awarded to adjust strike and spare bonus points are also shown in the
+         * same scorecard
+         */
+        scoreChanged: function (event, score) {            
+            var chord_pk = score.chord_pk;
+            if (chord_pk > 9) {
+                var tenth_score = this.getScoreCard(9).children().filter('div').text();
+                var total_score = parseInt(tenth_score) + score.total;
+                this.getScoreCard(9).children().filter('div').text(total_score);
+            } else {
+                this.getScoreCard(score.chord_pk).children().filter('div').text(score.total);
+            }
         },
 
         /**
@@ -351,7 +352,9 @@ jQuery(function($) {
          * @return jQuery Object 
          */
         getScoreCard: function (chord_pk) {
-            return this.el.children().eq(chord_pk);
+            // for 10th and 11th chords, the 10th chord score card is used
+            var idx = (chord_pk > 9) ? 9 : chord_pk;
+            return this.el.children().eq(idx);
         }
     });
 
@@ -366,8 +369,31 @@ jQuery(function($) {
          * @return int index of the li element 
          */
         getRollScoreBox: function (attempt, chord_pk) {
-            var total_attempts = chord_pk === 9 ? 3 : 2;
-            return Math.abs(attempt - total_attempts);
+            if (chord_pk < 9) {
+                return Math.abs(attempt - 2);
+            } else if (chord_pk === 9) {
+                return Math.abs(attempt - 3);
+            } else if (chord_pk === 10) {
+
+                // if tenth chord is strike, we need two more boxes
+                // otherwise we need only one more boxes
+                var selected = ChordModel.select(function (chord) {
+                    return (chord.pk === 9);
+                });
+                var tenth = selected[0];
+                if (tenth.get_score().is_strike()) {
+                    return 1;
+                }
+                return 0;
+
+            } else if (chord_pk === 11) {
+
+                // the last box
+                return 0;
+
+            } else {
+                throw new Error('The upper bound for chord_pk is 11. '+chord_pk+' is invalid');
+            }            
         },
     });
 

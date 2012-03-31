@@ -50,7 +50,7 @@ ChordModel.extend({
         var note = Notes.names[Math.floor(Math.random()*Notes.names.length)];
         var type = Chord.TYPES[Math.floor(Math.random()*Chord.TYPES.length)];
         var chord_name = note+" "+type.code;
-        // var chord_name = 'A Maj'; // for testing
+        var chord_name = 'A Maj'; // for testing
         return Chord.build(chord_name);        
     },
 
@@ -97,7 +97,16 @@ ChordModel.include({
     },
 
     is_last: function () {
-        return (this.pk === 9);
+        switch (this.pk) {
+        case 9:
+            return !(this.get_score().is_strike() || this.get_score().is_spare());            
+        case 10:
+            return !(this.get_score().is_strike());
+        case 11:
+            return true;
+        default:
+            return false
+        }
     },
 
     /**
@@ -133,13 +142,35 @@ ChordModel.include({
     },
 
     /**
+     * Method to check the number of max guesses per chord
+     */
+    max_guesses: function () {
+        // max under normal conditions
+        var max = 2;
+
+        // but if 11th chord is awarded due to spare in tenth frame, then it will
+        // have max 1 guess only
+        if (this.pk === 10) {
+            var tenth = this.prev();
+            if (tenth.get_score().is_spare()) {
+                max = 1;
+            }
+        } else if (this.pk === 11) {
+            max = 1;
+        }
+
+        return max;
+    },
+
+    /**
      * Method to check if any more guesses can be made for this chord
      */
     can_guess: function () {
-        var max = (this.pk === 9) ? 3 : 2;
+        var max = this.max_guesses();
+
         if (this.num_attempt < max) {
             if (this.score_id) {
-                return !this.get_score().is_strike();
+                return (!this.get_score().is_strike());
             } 
             return true;
         }
