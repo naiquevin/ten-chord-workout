@@ -80,6 +80,9 @@ jQuery(function($) {
          * ..for both the attempts
          */
         confirm: function () {
+            if (!this.chord.current.can_guess()) {
+                return;
+            }
             var guess = this.notePicker.getMarked("guessed");
             if (!guess[0]) {
                 alert("Please select some notes by clicking on them");
