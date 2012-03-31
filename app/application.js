@@ -23,6 +23,8 @@ jQuery(function($) {
             "#confirm-guess": "confirmBtn",
             "#buttons a": "controlButtons"
         },
+
+        gameover: false,
         
         init: function () {
             // create the note buttons
@@ -100,6 +102,12 @@ jQuery(function($) {
             this.scoreboard.update(score);
             this.updateButtons();
             this.notePicker.updateStatuses(chord);
+
+            // if this chord is the last one, set the gameover flag to true
+            if (this.chord.current.is_last()) {
+                this.gameover = true;
+                setTimeout(this.scoreboard.display_final_score, 200);
+            }
         },
 
         /**
@@ -355,6 +363,14 @@ jQuery(function($) {
             // for 10th and 11th chords, the 10th chord score card is used
             var idx = (chord_pk > 9) ? 9 : chord_pk;
             return this.el.children().eq(idx);
+        },
+
+        /**
+         * Display the final score
+         */
+        display_final_score: function () {
+            var finalscore = ScoreModel.final_score();
+            $("#final-score").text(finalscore).slideDown(400);
         }
     });
 
@@ -394,7 +410,7 @@ jQuery(function($) {
             } else {
                 throw new Error('The upper bound for chord_pk is 11. '+chord_pk+' is invalid');
             }            
-        },
+        }
     });
 
     window.App = TenChordApp.init();

@@ -3,6 +3,7 @@ $(document).ready(function () {
     module("Testing ChordModel factory", {
         teardown: function () {
             ChordModel.destroyAll();
+            ScoreModel.destroyAll();
         }
     });
 
@@ -33,6 +34,7 @@ $(document).ready(function () {
         // and destroy the collection after running it
         teardown: function () {
             ChordModel.destroyAll();
+            ScoreModel.destroyAll();
         }
     });
 
@@ -68,6 +70,7 @@ $(document).ready(function () {
     module("Testing Evaluation of guesses", {
         teardown: function () {
             ChordModel.destroyAll();
+            ScoreModel.destroyAll();
         }
     });
 
@@ -212,6 +215,7 @@ $(document).ready(function () {
         // and destroy the collection after running it
         teardown: function () {
             ChordModel.destroyAll();
+            ScoreModel.destroyAll();
         }
     });
 
@@ -249,11 +253,7 @@ $(document).ready(function () {
         equal(score9.total, 30, "chord 10 score increase by bonus 10");
 
         // test that the total score is 300 which is maximum
-        var total_score = 0;
-        var i = 0;
-        while (i < 10) {
-            total_score += this['chord'+(i++)].get_score().total;
-        }
+        var total_score = ScoreModel.final_score();
         
         equal(total_score, 300, "the total score is 300 (maximum)");
 

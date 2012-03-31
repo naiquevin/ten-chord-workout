@@ -50,7 +50,7 @@ ChordModel.extend({
         var note = Notes.names[Math.floor(Math.random()*Notes.names.length)];
         var type = Chord.TYPES[Math.floor(Math.random()*Chord.TYPES.length)];
         var chord_name = note+" "+type.code;
-        var chord_name = 'A Maj'; // for testing
+        // var chord_name = 'A Maj'; // for testing
         return Chord.build(chord_name);        
     },
 
@@ -70,12 +70,16 @@ ChordModel.extend({
     award_strike_bonus: function (curr) {
         var prev = curr.prev();
         var bonus = curr.get_score().roll_score();
-        count = 0;
+        var count = 0;
         while (prev.get_score().is_strike() && count < 2) {
-            count++;            
+
+            // don't award bonus to bonus chords (11 and 12)
+            if (prev.chord_pk > 9) break;
+
             prev.get_score().add_bonus(bonus);
             prev = prev.prev(); // variable name #fail!
             if (!prev) break;
+            count++;
         }
     },
 
@@ -294,4 +298,18 @@ ScoreModel.include({
         this.bonus = bonus;
         this.save();
     }
+});
+
+ScoreModel.extend({
+
+    final_score: function () {
+        var total = 0;
+        ScoreModel.each(function (score) {
+            if (score.chord_pk <= 9) {
+                total += score.total;
+            }
+        });
+        return total;
+    }
+
 });
