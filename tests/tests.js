@@ -9,12 +9,12 @@ $(document).ready(function () {
 
     test('Optional Argument `specific` works', function () {
         var chord = ChordModel.factory("A Maj");
-        same(chord.notes, ['A', 'C#', 'E'], 'A major chord was specified and was created correctly');
+        deepEqual(chord.notes, ['A', 'C#', 'E'], 'A major chord was specified and was created correctly');
     });
 
     test('Initial property values of ChordModel objects', function () {
         var chord = ChordModel.factory();
-        equals(chord.pk, 0, 'primary key is 0 being the first chord');
+        equal(chord.pk, 0, 'primary key is 0 being the first chord');
         ok(chord.name, 'has a non-blank name');
         ok(chord.notes.length > 1, 'chord created is made up of more than 1 notes');
         equal(chord.guess, null, 'the guess property is null');
@@ -44,26 +44,26 @@ $(document).ready(function () {
     });
 
     test('ChordModel Primary Key', function () {
-        equals(this.chord0.pk, 0, 'The models collection is zero indexed');
-        equals(this.chord1.pk, this.chord0.pk + 1, 'Primary key increases by 1');        
+        equal(this.chord0.pk, 0, 'The models collection is zero indexed');
+        equal(this.chord1.pk, this.chord0.pk + 1, 'Primary key increases by 1');        
     });
 
     test('prev method', function () {
         ok(!this.chord0.prev(), 'There is no prev chord');
         var prev = this.chord1.prev();
-        equals(typeof prev, 'object', 'Previous chord exists and is an object..');
-        equals(prev.pk, this.chord1.pk - 1);
+        equal(typeof prev, 'object', 'Previous chord exists and is an object..');
+        equal(prev.pk, this.chord1.pk - 1);
     });
 
     test('next method', function () {
         var next = this.chord0.next();
-        equals(typeof next, 'object', 'Next chord exists and is an object..');
+        equal(typeof next, 'object', 'Next chord exists and is an object..');
         ok(!this.chord9.next(), 'Last (10th) chord doesn\'t have a next chord and returns false');
     });
 
     test('is_last', function () {
         ok(this.chord9.is_last(), 'The 10th chord is the last one');
-        equals(this.chord9.pk, 9, 'Being zero indexed, it\'s pk field value is 9');
+        equal(this.chord9.pk, 9, 'Being zero indexed, it\'s pk field value is 9');
         ok(!this.chord4.is_last(), 'The 5th chord is not the last one');
     });        
 
@@ -79,16 +79,16 @@ $(document).ready(function () {
         var chord = ChordModel.factory('A Maj')
         var guess = ['A', 'C', 'E'];
         chord.evaluate(guess);
-        same(chord.guess, guess, 'guess is direct saved as the obj property');
+        deepEqual(chord.guess, guess, 'guess is direct saved as the obj property');
         equal(chord.num_attempt, 1, 'one attempt is consumed')
-        same(chord.correct, ['A', 'E'], 'A and E were guessed correctly');        
+        deepEqual(chord.correct, ['A', 'E'], 'A and E were guessed correctly');        
         ok(chord.can_guess(), 'The user can guess one more time');
         // make another guess
         var guess2 = ['A', 'C', 'F'];
         chord.evaluate(guess2);
-        same(chord.guess, guess2, 'guess is direct saved as the obj property');
+        deepEqual(chord.guess, guess2, 'guess is direct saved as the obj property');
         equal(chord.num_attempt, 2, 'one attempt is consumed')
-        same(chord.correct, ['A'], 'A was guessed correctly');        
+        deepEqual(chord.correct, ['A'], 'A was guessed correctly');        
         ok(!chord.can_guess(), 'Both guesses consumed. No more guesses allowed');
     });
 
@@ -99,11 +99,11 @@ $(document).ready(function () {
         equal(score.total, 0);
         equal(score.bonus, 0);
         score.update_score(3);
-        same(score.scores, [3]);
+        deepEqual(score.scores, [3]);
         equal(score.total, 3);
         equal(score.frame_score(), 3);
         score.update_score(7);
-        same(score.scores, [3, 7]);
+        deepEqual(score.scores, [3, 7]);
         equal(score.total, 7);
         equal(score.roll_score(), 4);
         equal(score.frame_score(), 7);       
