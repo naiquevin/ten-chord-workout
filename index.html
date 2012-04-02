@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>The Ten Chord Workout - Guitar.js example app</title>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    <script type="text/javascript" src="minified.js"></script>
+    <script type="text/x-jquery-tmpl" id="chordlistTemplate">
+      <li id="pk-${pk}" class="active">
+        <a class="{{if correct}}correct{{/if}}">${name}</a>
+      </li>
+    </script>
+  </head>
+  <body>
+    <a href="http://github.com/naiquevin/ten-chord-workout"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://a248.e.akamai.net/assets.github.com/img/e6bef7a091f5f3138b8cd40bc3e114258dd68ddf/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub"></a>
+    <div id="header">
+      <h1>Ten-Chord-Workout</h1>
+    </div>
+    <div id="wrapper">      
+      <div id="score-board">
+        <ul>
+        </ul>
+        <div id="final-score">
+          -
+        </div>
+      </div>
+      <div id="left-side">
+        <div id="playground">
+          <h2 id="question">D# Dim</h2>
+          <ul id="notes">
+          </ul>
+          <div id="buttons">
+            <a id="prev-btn"><span>&laquo;Previous</span></a>
+            <a id="confirm-guess"><span>Roll</span></a>
+            <a id="next-btn"><span>Next&raquo;</span></a>            
+          </div>
+        </div>
+      </div>
+      <div id="right-side">
+        <ul id="chord-list"></ul>
+        <div id="answers">
+
+        </div>
+      </div>
+      <br class="clear"/>
+      <p class="readme">
+        <label>How to play ?</label>
+        Select the notes that you think make the chord and click on "roll" to submit your 
+        guess. There are 10 chords and you get 2 guesses per chord. The scoring system resembles
+        ten-pin-bowling, which means you will be awarded bonus points for "strikes" and "spares".
+      </p>
+      <p class="readme">
+        This game is a weekend project and still a WIP. If it interests you in any way, feel free to send any
+        kind of feedback (including suggestion for a better name) to naikvin at gmail dot com. 
+      </p>
+    </div>
+  </body>
+</html>
+
