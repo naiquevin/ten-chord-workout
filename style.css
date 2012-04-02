@@ -75,7 +75,7 @@ body {
     border:2px solid #000;
     text-align: left; 
     background: #657b83; 
-    min-height: 450px;
+    min-height: 470px;
 }
 
 #score-board {
@@ -264,3 +264,13 @@ body {
     background: #fff;
     float: left;
 }
+
+.readme { 
+    margin-top: 15px; 
+}
+
+.readme label {
+    font-weight: bold;
+}
+
+.clear { clear: both; }
