@@ -227,6 +227,7 @@ jQuery(function($) {
         change: function (chord) {
             this.clear();
             this.updateStatuses(chord);
+            this.shuffleNotes();
         },
 
         /**
@@ -282,6 +283,19 @@ jQuery(function($) {
             return marked;
         },
 
+        /**
+         * Shuffle notes to prevent cheating via pattern matching
+         */
+        shuffleNotes: function () {
+            for (var i = 0; i < 12; i++) {
+                var j;
+                while (1) {
+                    j = Math.floor(Math.random() * 12);
+                    if (i !== j) break;
+                }
+                this.el.children().eq(i).after(this.el.children().eq(j));
+            }
+        }
     });
 
     window.Scoreboard = Spine.Controller.create({
