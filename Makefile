@@ -1,6 +1,6 @@
 all:
-	@echo "Script for minifying js files using uglify-js"
-	@echo "Make sure uglifyjs is in include path"
+	@echo "Simple Makefile for minifying js files using uglify-js"
+	@echo "Make sure uglifyjs is added to the PATH env variable"
 
 minify:
 	@echo "Minifying and packaging all js files using uglify-js"
